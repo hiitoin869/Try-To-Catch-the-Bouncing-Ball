@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Catch the Bouncing Ball</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #game {
+            width: 400px;
+            height: 500px;
+            background-color: white;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #333;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        #ball {
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #paddle {
+            width: 80px;
+            height: 15px;
+            background-color: blue;
+            position: absolute;
+            bottom: 20px;
+            left: 160px;
+            border-radius: 5px;
+        }
+        #score {
+            font-size: 24px;
+            margin: 20px;
+        }
+        #start-btn {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #start-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Catch the Bouncing Ball!</h1>
+    <div id="score">Score: 0</div>
+    <button id="start-btn">Start Game</button>
+    <div id="game">
+        <div id="ball"></div>
+        <div id="paddle"></div>
+    </div>
+
+    <script>
+        const ball = document.getElementById('ball');
+        const paddle = document.getElementById('paddle');
+        const game = document.getElementById('game');
+        const scoreElement = document.getElementById('score');
+        const startBtn = document.getElementById('start-btn');
+        
+        let ballX = 0;
+        let ballY = 0;
+        let ballSpeedX = 3;
+        let ballSpeedY = 3;
+        let paddleX = 160;
+        let score = 0;
+        let gameRunning = false;
+        
+        const gameWidth = game.offsetWidth;
+        const gameHeight = game.offsetHeight;
+        const ballWidth = ball.offsetWidth;
+        const paddleWidth = paddle.offsetWidth;
+        
+        // Mouse movement controls
+        game.addEventListener('mousemove', (e) => {
+            if (!gameRunning) return;
+            
+            const rect = game.getBoundingClientRect();
+            paddleX = e.clientX - rect.left - paddleWidth/2;
+            
+            // Keep paddle within game boundaries
+            if (paddleX < 0) paddleX = 0;
+            if (paddleX > gameWidth - paddleWidth) paddleX = gameWidth - paddleWidth;
+            
+            paddle.style.left = paddleX + 'px';
+        });
+        
+        // Start game button
+        startBtn.addEventListener('click', () => {
+            if (gameRunning) return;
+            
+            gameRunning = true;
+            score = 0;
+            scoreElement.textContent = 'Score: ' + score;
+            ballX = Math.random() * (gameWidth - ballWidth);
+            ballY = 0;
+            ballSpeedY = 3;
+            startBtn.textContent = 'Game Running...';
+            
+            gameLoop();
+        });
+        
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Move the ball
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            
+            // Ball collision with walls
+            if (ballX <= 0 || ballX >= gameWidth - ballWidth) {
+                ballSpeedX = -ballSpeedX;
+            }
+            
+            if (ballY <= 0) {
+                ballSpeedY = -ballSpeedY;
+            }
+            
+            // Ball collision with paddle
+            if (ballY >= gameHeight - ballWidth - paddle.offsetHeight && 
+                ballX + ballWidth >= paddleX && 
+                ballX <= paddleX + paddleWidth) {
+                ballSpeedY = -ballSpeedY;
+                score++;
+                scoreElement.textContent = 'Score: ' + score;
+                
+                // Increase speed every 5 points
+                if (score % 5 === 0) {
+                    ballSpeedX *= 1.1;
+                    ballSpeedY *= 1.1;
+                }
+            }
+            
+            // Game over if ball hits bottom
+            if (ballY >= gameHeight) {
+                gameRunning = false;
+                startBtn.textContent = 'Game Over! Final Score: ' + score + ' - Play Again?';
+                return;
+            }
+            
+            // Update ball position
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+            
+            // Continue the game loop
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
